@@ -9,12 +9,13 @@ using Serilog;
 
 using System.Text;
 
-// Configure Serilog for file logging
+
+// Serilog for logging
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File(
-        path: "Logs/wowlog.txt",           // Log files will be in the Logs folder, rolling daily
+        path: "Logs/wowlog.txt",
         rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 14,      // Keep logs for 14 days
+        retainedFileCountLimit: 14,
         fileSizeLimitBytes: 10_000_000,  // 10 MB per file
         rollOnFileSizeLimit: true,
         outputTemplate: "{Timestamp: HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
@@ -23,7 +24,7 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog(); // Use Serilog for logging
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
