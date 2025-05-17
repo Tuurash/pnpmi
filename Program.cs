@@ -35,7 +35,11 @@ builder.Services.AddSwaggerGen();
 //});
 
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+
 builder.Services.AddDbContext<DataContext>();
 
 var app = builder.Build();
