@@ -1,5 +1,6 @@
 ﻿using DataProvider.Repositories;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,7 +25,7 @@ public class AuthController : ControllerBase
         _configuration = configuration;
     }
 
-    [HttpPost("login")]
+    [HttpPost("login"), AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = (await _userRepository.GetAllUsersAsync())
