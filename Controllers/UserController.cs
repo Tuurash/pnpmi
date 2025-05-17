@@ -20,6 +20,7 @@ public class UserController : ControllerBase
 
     // GET: api/User
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<User>>> GetAll()
     {
         var users = await _userRepository.GetAllUsersAsync();
@@ -28,6 +29,7 @@ public class UserController : ControllerBase
 
     // GET: api/User/5
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<User>> GetById(int id)
     {
         var user = await _userRepository.GetUserByIdAsync(id);
