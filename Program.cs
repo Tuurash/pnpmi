@@ -10,8 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 
 using Serilog;
 
+using System.Net;
 using System.Text;
-
+using System.Text.Json;
 
 // Serilog for logging
 Log.Logger = new LoggerConfiguration()
@@ -32,7 +33,6 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 //JWT 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -63,6 +63,34 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddDbContext<DataContext>();
 
 var app = builder.Build();
+
+//Global Exception Handling Middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Unhandled exception occurred");
+
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new
+        {
+            error = "An unexpected error occurred.",
+            details = app.Environment.IsDevelopment() ? ex.ToString() : null
+        };
+
+        //Log to Serilog
+        Log.Error("GException: {ErrorResponse}", errorResponse);
+
+        var json = JsonSerializer.Serialize(errorResponse);
+        await context.Response.WriteAsync(json);
+    }
+});
 
 using (var scope = app.Services.CreateScope())
 {
