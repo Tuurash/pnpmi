@@ -20,26 +20,28 @@ public class TaskController : ControllerBase
         _taskRepository = taskRepository;
     }
 
-    // Managers can create tasks
+    // Admins and Managers can create tasks
     [HttpPost]
-    [Authorize(Roles = "Admin, Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult<UserTask>> Create(UserTask task)
     {
         var createdTask = await _taskRepository.AddTaskAsync(task);
         return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, createdTask);
     }
 
-    // Managers can update any task, Employees can only update their assigned task's status
+    // Admins and Managers can update any task, Employees can only update their assigned task's status
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin, Manager")]
+    [Authorize]
     public async Task<IActionResult> Update(int id, UserTask task)
     {
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
-        if (userRole == "Manager")
+        if (userRole == "Admin" || userRole == "Manager")
         {
-            // Managers can update any task
+            if (id != task.Id)
+                return BadRequest();
+
             var updated = await _taskRepository.UpdateTaskAsync(task);
             if (!updated)
                 return NotFound();
@@ -47,11 +49,11 @@ public class TaskController : ControllerBase
         }
         else if (userRole == "Employee")
         {
-            // Employees can only update status of their assigned tasks
             var existingTask = await _taskRepository.GetTaskByIdAsync(id);
             if (existingTask == null || existingTask.AssignedToUserId != userId)
                 return Forbid();
 
+            // Employees can only update the status
             existingTask.Status = task.Status;
             var updated = await _taskRepository.UpdateTaskAsync(existingTask);
             if (!updated)
@@ -64,7 +66,7 @@ public class TaskController : ControllerBase
         }
     }
 
-
+    // Admins/Managers can view all tasks, Employees can view their assigned tasks
     [HttpGet]
     [Authorize]
     public async Task<ActionResult<IEnumerable<UserTask>>> GetAll()
@@ -72,7 +74,7 @@ public class TaskController : ControllerBase
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
-        if (userRole == "Manager")
+        if (userRole == "Admin" || userRole == "Manager")
         {
             var tasks = await _taskRepository.GetAllTasksAsync();
             return Ok(tasks);
@@ -88,6 +90,7 @@ public class TaskController : ControllerBase
         }
     }
 
+    // Admins/Managers can get any task, Employees can get their assigned tasks
     [HttpGet("{id}")]
     [Authorize]
     public async Task<ActionResult<UserTask>> GetById(int id)
@@ -99,9 +102,24 @@ public class TaskController : ControllerBase
         if (task == null)
             return NotFound();
 
-        if (userRole == "Manager" || (userRole == "Employee" && task.AssignedToUserId == userId))
+        if (userRole == "Admin" || userRole == "Manager")
+            return Ok(task);
+
+        if (userRole == "Employee" && task.AssignedToUserId == userId)
             return Ok(task);
 
         return Forbid();
+    }
+
+    // Admins/Managers can delete any task
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var deleted = await _taskRepository.DeleteTaskAsync(id);
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
     }
 }

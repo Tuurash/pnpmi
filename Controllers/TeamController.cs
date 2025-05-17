@@ -34,10 +34,31 @@ public class TeamController : ControllerBase
         if (id != team.Id)
             return BadRequest();
 
+        //Get the existing team to check if it exists
+        var existingTeam = await _teamRepository.GetTeamByIdAsync(id);
+        if (existingTeam == null)
+            return NotFound();
+
+
+
         var updated = await _teamRepository.UpdateTeamAsync(team);
         if (!updated)
             return NotFound();
 
+        return NoContent();
+    }
+
+    //add User to team
+    [HttpPut("{teamId}/addUser/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddUserToTeam(int teamId, int userId)
+    {
+        var team = await _teamRepository.GetTeamByIdAsync(teamId);
+        if (team == null)
+            return NotFound();
+        var userAdded = await _teamRepository.AddUserToTeamAsync(teamId, userId);
+        if (!userAdded)
+            return NotFound();
         return NoContent();
     }
 

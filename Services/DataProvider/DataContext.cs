@@ -26,8 +26,8 @@ public class DataContext : DbContext
 
     //seed database with
     /* Admin: admin@demo.com / Admin123!
-Manager: manager@demo.com / Manager123!
-Employee: employee@demo.com / Employee123!
+       Manager: manager@demo.com / Manager123!
+       Employee: employee@demo.com / Employee123!
      */
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -45,7 +45,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "SO much pain"
+        Description = "vai run"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -62,6 +62,7 @@ builder.Services.AddSwaggerGen(options =>
             new string[] {}
         }
     });
+
 });
 
 //JWT 
@@ -78,6 +79,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
+
     });
 
 //Fluent validation
@@ -94,6 +96,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+
 
 builder.Services.AddDbContext<DataContext>();
 
